@@ -1,0 +1,46 @@
+class EventTarget  {
+  constructor () {
+    this.listeners = {}
+  }
+
+  on (topic, callback) {
+    if (!this.listeners[topic]) this.listeners[topic] = []
+    this.listeners[topic].push(callback)
+  }
+
+  once (topic, callback) {
+    if (!this.listeners[topic]) this.listeners[topic] = [] 
+    callback._once = true
+    this.listeners[topic].push(callback)
+  }
+
+  off (topic, callback) {
+    const listener = this.listeners[topic]
+
+    if (Array.isArray(listener)) {
+      const index = listener.findIndex(item => {
+        return item === callback
+      })
+      this.listeners[topic].splice(index, 1)
+
+      if (this.listeners[topic].length === 0) {
+        delete this.listeners[topic]
+      }
+    }
+  }
+
+  trigger (event) {
+    const { topic } = event
+
+    if (!topic) throw new Error(`${topic} is not ddefined!`)
+
+    const listener = this.listeners[topic]
+
+    if (!listener) throw new Error(`${topic} is not ddefined!`)
+
+    listener.forEach(item => {
+      item(event)
+      if (item._once) this.off(topic, item)
+    })
+  }
+}
